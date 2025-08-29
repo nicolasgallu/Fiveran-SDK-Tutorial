@@ -16,9 +16,9 @@ jobs:
         with: 
           python-version: '3.10'
       - name: installing fivetran SDK
-        run: pip install fivetran_connector_sdk:latest
+        run: pip install 'fivetran_connector_sdk:latest'
       - name: installing requests
-        run: pip install requests:2.32.4
+        run: pip install 'requests:2.32.4'
       - name: installing requirements
         run : pip install -r tutorials/pokemon_not_paginated/requirements.txt
       - name: ejecutando connector.py
