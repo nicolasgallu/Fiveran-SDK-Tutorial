@@ -16,5 +16,5 @@ jobs:
         with: 
           python-version: '3.13'
       - name: ejecutando connector.py
-        run: python .tutorials/pokemon_not_paginated/connector.py
+        run: python tutorials/pokemon_not_paginated/connector.py
     
