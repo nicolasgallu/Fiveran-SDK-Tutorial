@@ -6,7 +6,7 @@ from fivetran_connector_sdk import Connector, Logging as log, Operations as op
 import pandas as pd
 import requests as rq
 
-# Constant Values
+# Constants
 MAX_PAGE_LIMIT = 10
 BATCH_SIZE = 1
 BASE_URL = "https://pokeapi.co/api/v2/pokemon"
