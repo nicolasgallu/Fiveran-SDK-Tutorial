@@ -16,7 +16,7 @@ jobs:
         with: 
           python-version: '3.13'
       - name: installing requirements
-        run : pip install -r requirements.txt
+        run : pip install -r tutorials/pokemon_not_paginated/requirements.txt
       - name: ejecutando connector.py
         run: python tutorials/pokemon_not_paginated/connector.py
     
