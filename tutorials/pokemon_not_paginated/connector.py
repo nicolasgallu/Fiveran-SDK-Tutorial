@@ -11,6 +11,7 @@ MAX_PAGE_LIMIT = 10
 BATCH_SIZE = 1
 BASE_URL = "https://pokeapi.co/api/v2/pokemon"
 
+print("start declared functions")
 
 def update(configuration: dict, state: dict):
     """
@@ -66,10 +67,12 @@ def get_data(url, offset):
         pokemons_df = pd.concat([pokemons_df, pd.DataFrame([pokemon_data])], ignore_index=True)
     return next_url, pokemons_df
 
+print("finish declaring functions")
 
 # This creates the connector object that will use the update and schema functions defined in this connector.py file.
 connector = Connector(update=update)
 
+print("running debugging")
 # Check if the script is being run as the main module.
 # This is Python's standard entry method allowing your script to be run directly from the command line or IDE 'run' button.
 # This is useful for debugging while you write your code. Note this method is not called by Fivetran when executing your connector in production.
