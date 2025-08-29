@@ -9,18 +9,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout repo
-        uses: actions/checkout@v5
-      - name: set-up python
+      - name: Checkout repo
+        uses: actions/checkout@v4   # v4 is the current latest
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with: 
           python-version: '3.10'
-      - name: installing fivetran SDK
-        run: pip install 'fivetran_connector_sdk:latest'
-      - name: installing requests
-        run: pip install 'requests:2.32.4'
-      - name: installing requirements
-        run : pip install -r tutorials/pokemon_not_paginated/requirements.txt
-      - name: ejecutando connector.py
+
+      - name: Install Fivetran SDK
+        run: pip install fivetran-connector-sdk
+
+      - name: Install Requests
+        run: pip install requests==2.32.4
+
+      - name: Install requirements
+        run: pip install -r tutorials/pokemon_not_paginated/requirements.txt
+
+      - name: Run connector.py
         run: python tutorials/pokemon_not_paginated/connector.py
-    
