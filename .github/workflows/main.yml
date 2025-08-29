@@ -45,3 +45,4 @@ jobs:
           echo "Deploying connector"
           fivetran deploy --api-key $FIVETRAN_API_KEY --destination $FIVETRAN_DESTINATION_NAME --connection $FIVETRAN_CONNECTION_NAME --configuration configuration.json --force
           echo "Successfully deployed $CONNECTION_NAME"
+
