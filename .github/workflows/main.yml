@@ -44,8 +44,8 @@ jobs:
           echo "Deploying connector"
           cd tutorials/pokemon_not_paginated/
 
-          echo "Key starts with: ${FIVETRAN_SDK_API_KEY:0:4}****"
-          echo "Secret starts with: ${FIVETRAN_SDK_API_SECRET:0:4}****"
+          echo "Key starts with: ${FIVETRAN_SDK_API_KEY:0:4}"
+          echo "Secret starts with: ${FIVETRAN_SDK_API_SECRET:0:4}"
 
           # Build Basic auth: base64("key:secret"), single line, no newline
           AUTH=$(printf "%s:%s" "$FIVETRAN_API_KEY" "$FIVETRAN_API_SECRET" | base64 -w0)
