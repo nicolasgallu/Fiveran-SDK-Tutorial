@@ -8,41 +8,39 @@ on:
 jobs:
   deploy-fivetran-connector:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Install dependencies
+      - name: Install dependencies (Fivetran SDK)
         run: |
           python -m pip install --upgrade pip
           pip install fivetran-connector-sdk
-
-      - name: Install requirements.txt
+      - name: Install requirements.txt for the connector
         run: |
+          # Change directory to where your connector's requirements.txt is located
+          cd tutorials/pokemon_not_paginated/
           if [ -e requirements.txt ]; then
             echo '{"level":"INFO", "message": "Pip installing requirements.txt", "message_origin": "connector_sdk"}'
             pip install -r <(grep -v '^requests\b' requirements.txt)
           fi
-
       - name: Create Configuration File
         run: |
-          echo "{\"my_key\": \"${{ secrets.MY_KEY }}\"}" > configuration.json    
-        # MY_KEY is an example of a credential in the configuration file.
-
+          # Create the configuration.json file directly in the connector's directory
+          mkdir -p tutorials/pokemon_not_paginated/files # Ensure 'files' directory exists if your connector relies on it
+          echo "{\"my_key\": \"${{ secrets.MY_KEY }}\"}" > tutorials/pokemon_not_paginated/configuration.json
       - name: Deploy Fivetran Connector
         env:
           FIVETRAN_API_KEY: ${{ secrets.FIVETRAN_API_KEY }}
           FIVETRAN_DESTINATION_NAME: ${{ secrets.FIVETRAN_DESTINATION_NAME }}
           FIVETRAN_CONNECTION_NAME: ${{ secrets.FIVETRAN_CONNECTION_NAME }}
-          # `FIVETRAN_DESTINATION` and `FIVETRAN_CONNECTION` are optional parameter. Alternatively, you can hardcode it, for example: `fivetran deploy --api-key $FIVETRAN_BASE_64_ENCODED_API_KEY --destination xyz --connection abc --configuration configuration.json --force`  
         run: |
           echo "Deploying connector"
+          # Change directory to where connector.py and configuration.json are located for deployment
+          cd tutorials/pokemon_not_paginated/
           fivetran deploy --api-key $FIVETRAN_API_KEY --destination $FIVETRAN_DESTINATION_NAME --connection $FIVETRAN_CONNECTION_NAME --configuration configuration.json --force
-          echo "Successfully deployed $CONNECTION_NAME"
+          echo "Successfully deployed $FIVETRAN_CONNECTION_NAME" # Use FIVETRAN_CONNECTION_NAME from env for consistency
 
