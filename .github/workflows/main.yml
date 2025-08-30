@@ -8,64 +8,77 @@ on:
 jobs:
   deploy-fivetran-connector:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
       - name: Install dependencies (Fivetran SDK)
         run: |
           python -m pip install --upgrade pip
           pip install fivetran-connector-sdk
-      - name: Install requirements.txt for the connector
-        run: |
-          # Change directory to where your connector's requirements.txt is located
-          cd tutorials/pokemon_not_paginated/
-          if [ -e requirements.txt ]; then
-            echo '{"level":"INFO", "message": "Pip installing requirements.txt", "message_origin": "connector_sdk"}'
-            pip install -r <(grep -v '^requests\b' requirements.txt)
-          fi
-      - name: Create Configuration File
-        run: |
-          # Create the configuration.json file directly in the connector's directory
-          mkdir -p tutorials/pokemon_not_paginated/files # Ensure 'files' directory exists if your connector relies on it
-          echo "{\"my_key\": \"${{ secrets.MY_KEY }}\"}" > tutorials/pokemon_not_paginated/configuration.json
 
+      # Optional: install your connector's Python deps if you plan to smoke-test locally.
+      # Not required strictly for deploy, but harmless to keep here.
+      - name: Install requirements.txt for the connector
+        working-directory: tutorials/pokemon_not_paginated
+        run: |
+          if [ -e requirements.txt ]; then
+            echo '{"level":"INFO","message":"Installing requirements.txt","message_origin":"connector_sdk"}'
+            pip install -r requirements.txt
+          fi
+
+      - name: Create configuration.json
+        working-directory: tutorials/pokemon_not_paginated
+        run: |
+          mkdir -p files
+          # If your connector doesn't need config, use '{}' instead.
+          echo "{\"my_key\":\"${{ secrets.MY_KEY }}\"}" > configuration.json
+
+      # Sanity: ensure secrets are injected (don't print their values)
       - name: Check secrets presence
         env:
-          FIVETRAN_SDK_API_KEY: ${{ secrets.FIVETRAN_API_KEY }}
-          FIVETRAN_SDK_API_SECRET: ${{ secrets.FIVETRAN_API_SECRETS }}
+          FIVETRAN_SDK_API_KEY:    ${{ secrets.FIVETRAN_API_KEY }}
+          FIVETRAN_SDK_API_SECRET: ${{ secrets.FIVETRAN_API_SECRET }}
+          FIVETRAN_DESTINATION_NAME: ${{ secrets.FIVETRAN_DESTINATION_NAME }}
+          FIVETRAN_CONNECTION_NAME:  ${{ secrets.FIVETRAN_CONNECTION_NAME }}
         run: |
-          [ -n "$FIVETRAN_SDK_API_KEY" ] && echo "SDK key: PRESENT" || echo "SDK key: MISSING"
-          [ -n "$FIVETRAN_SDK_API_SECRET" ] && echo "SDK secret: PRESENT" || echo "SDK secret: MISSING"
-
+          [ -n "$FIVETRAN_SDK_API_KEY" ]    && echo "SDK key: PRESENT"        || { echo "SDK key: MISSING"; exit 1; }
+          [ -n "$FIVETRAN_SDK_API_SECRET" ] && echo "SDK secret: PRESENT"     || { echo "SDK secret: MISSING"; exit 1; }
+          [ -n "$FIVETRAN_DESTINATION_NAME" ] && echo "Destination: PRESENT"  || { echo "Destination: MISSING"; exit 1; }
+          [ -n "$FIVETRAN_CONNECTION_NAME" ]  && echo "Connection: PRESENT"   || { echo "Connection: MISSING"; exit 1; }
 
       - name: Deploy Fivetran Connector
         env:
-          FIVETRAN_API_KEY: ${{ secrets.FIVETRAN_API_KEY }}
-          FIVETRAN_API_SECRET: ${{ secrets.FIVETRAN_API_SECRET }}
+          FIVETRAN_SDK_API_KEY:    ${{ secrets.FIVETRAN_API_KEY }}
+          FIVETRAN_SDK_API_SECRET: ${{ secrets.FIVETRAN_API_SECRET }}
           FIVETRAN_DESTINATION_NAME: ${{ secrets.FIVETRAN_DESTINATION_NAME }}
-          FIVETRAN_CONNECTION_NAME: ${{ secrets.FIVETRAN_CONNECTION_NAME }}
+          FIVETRAN_CONNECTION_NAME:  ${{ secrets.FIVETRAN_CONNECTION_NAME }}
+        working-directory: tutorials/pokemon_not_paginated
         run: |
+          set -euo pipefail
           echo "Deploying connector"
-          cd tutorials/pokemon_not_paginated/
 
-          echo "Key starts with: ${FIVETRAN_SDK_API_KEY}"
-          echo "Secret starts with: ${FIVETRAN_SDK_API_SECRET}"
+          # Build Basic auth: base64("KEY:SECRET") with no newline/wraps
+          AUTH=$(printf "%s:%s" "$FIVETRAN_SDK_API_KEY" "$FIVETRAN_SDK_API_SECRET" | base64 -w0 2>/dev/null || printf "%s:%s" "$FIVETRAN_SDK_API_KEY" "$FIVETRAN_SDK_API_SECRET" | base64 | tr -d '\n')
 
-          # Build Basic auth: base64("key:secret"), single line, no newline
-          AUTH=$(printf "%s:%s" "$FIVETRAN_API_KEY" "$FIVETRAN_API_SECRET" | base64 -w0)
+          # Sanity: ensure it decodes to "something:something" (without printing secrets)
+          RAW=$(echo -n "$AUTH" | base64 -d || true)
+          case "$RAW" in
+            *:*) echo "AUTH format OK";;
+            *)   echo "AUTH format invalid (expected KEY:SECRET)"; exit 1;;
+          esac
 
           fivetran deploy \
             --api-key "$AUTH" \
             --destination "$FIVETRAN_DESTINATION_NAME" \
-            --connection "$FIVETRAN_CONNECTION_NAME" \
+            --connection  "$FIVETRAN_CONNECTION_NAME" \
             --configuration configuration.json \
             --force
 
           echo "Successfully deployed $FIVETRAN_CONNECTION_NAME"
-
-
-
