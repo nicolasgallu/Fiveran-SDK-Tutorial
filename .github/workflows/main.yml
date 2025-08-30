@@ -32,15 +32,29 @@ jobs:
           # Create the configuration.json file directly in the connector's directory
           mkdir -p tutorials/pokemon_not_paginated/files # Ensure 'files' directory exists if your connector relies on it
           echo "{\"my_key\": \"${{ secrets.MY_KEY }}\"}" > tutorials/pokemon_not_paginated/configuration.json
+
+
       - name: Deploy Fivetran Connector
         env:
           FIVETRAN_API_KEY: ${{ secrets.FIVETRAN_API_KEY }}
+          FIVETRAN_API_SECRET: ${{ secrets.FIVETRAN_API_SECRET }}
           FIVETRAN_DESTINATION_NAME: ${{ secrets.FIVETRAN_DESTINATION_NAME }}
           FIVETRAN_CONNECTION_NAME: ${{ secrets.FIVETRAN_CONNECTION_NAME }}
         run: |
           echo "Deploying connector"
-          # Change directory to where connector.py and configuration.json are located for deployment
           cd tutorials/pokemon_not_paginated/
-          fivetran deploy --api-key $FIVETRAN_API_KEY --destination $FIVETRAN_DESTINATION_NAME --connection $FIVETRAN_CONNECTION_NAME --configuration configuration.json --force
-          echo "Successfully deployed $FIVETRAN_CONNECTION_NAME" # Use FIVETRAN_CONNECTION_NAME from env for consistency
+
+          # Build Basic auth: base64("key:secret"), single line, no newline
+          AUTH=$(printf "%s:%s" "$FIVETRAN_API_KEY" "$FIVETRAN_API_SECRET" | base64 -w0)
+
+          fivetran deploy \
+            --api-key "$AUTH" \
+            --destination "$FIVETRAN_DESTINATION_NAME" \
+            --connection "$FIVETRAN_CONNECTION_NAME" \
+            --configuration configuration.json \
+            --force
+
+          echo "Successfully deployed $FIVETRAN_CONNECTION_NAME"
+
+
 
