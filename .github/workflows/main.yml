@@ -39,7 +39,7 @@ jobs:
           FIVETRAN_CONNECTION_NAME: ${{ secrets.FIVETRAN_CONNECTION_NAME }}
         run: |
           echo "Deploying connector"
-          # Change directory to where connector.py and configuration.json are located for deployment.
+          # Change directory to where connector.py and configuration.json are located for deployment
           cd tutorials/pokemon_not_paginated/
           fivetran deploy --api-key $FIVETRAN_API_KEY --destination $FIVETRAN_DESTINATION_NAME --connection $FIVETRAN_CONNECTION_NAME --configuration configuration.json --force
           echo "Successfully deployed $FIVETRAN_CONNECTION_NAME" # Use FIVETRAN_CONNECTION_NAME from env for consistency
