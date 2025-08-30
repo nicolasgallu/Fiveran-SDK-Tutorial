@@ -33,6 +33,14 @@ jobs:
           mkdir -p tutorials/pokemon_not_paginated/files # Ensure 'files' directory exists if your connector relies on it
           echo "{\"my_key\": \"${{ secrets.MY_KEY }}\"}" > tutorials/pokemon_not_paginated/configuration.json
 
+      - name: Check secrets presence
+        env:
+          FIVETRAN_SDK_API_KEY: ${{ secrets.FIVETRAN_API_KEY }}
+          FIVETRAN_SDK_API_SECRET: ${{ secrets.FIVETRAN_API_SECRET }}
+        run: |
+          [ -n "$FIVETRAN_SDK_API_KEY" ] && echo "SDK key: PRESENT" || echo "SDK key: MISSING"
+          [ -n "$FIVETRAN_SDK_API_SECRET" ] && echo "SDK secret: PRESENT" || echo "SDK secret: MISSING"
+
 
       - name: Deploy Fivetran Connector
         env:
