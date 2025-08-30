@@ -36,7 +36,7 @@ jobs:
       - name: Check secrets presence
         env:
           FIVETRAN_SDK_API_KEY: ${{ secrets.FIVETRAN_API_KEY }}
-          FIVETRAN_SDK_API_SECRET: ${{ secrets.FIVETRAN_API_SECRET }}
+          FIVETRAN_SDK_API_SECRET: ${{ secrets.FIVETRAN_API_SECRETS }}
         run: |
           [ -n "$FIVETRAN_SDK_API_KEY" ] && echo "SDK key: PRESENT" || echo "SDK key: MISSING"
           [ -n "$FIVETRAN_SDK_API_SECRET" ] && echo "SDK secret: PRESENT" || echo "SDK secret: MISSING"
